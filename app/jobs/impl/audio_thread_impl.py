@@ -1,4 +1,5 @@
 import threading
+
 import pygame
 
 from app.jobs.audio_thread import AudioThread
