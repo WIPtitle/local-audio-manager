@@ -4,8 +4,11 @@ from typing import Callable, get_type_hints
 
 from rabbitmq_sdk.client.impl.rabbitmq_client_impl import RabbitMQClientImpl
 from rabbitmq_sdk.enums.service import Service
+from rabbitmq_sdk.event.impl.devices_manager.camera_alarm import CameraAlarm
 
-from app.consumers.AlarmStoppedConsumer import AlarmStoppedConsumer
+from app.consumers.alarm_stopped_consumer import AlarmStoppedConsumer
+from app.consumers.camera_alarm_consumer import CameraAlarmConsumer
+from app.consumers.reed_alarm_consumer import ReedAlarmConsumer
 from app.jobs.audio_thread import AudioThread
 from app.jobs.impl.audio_thread_impl import AudioThreadImpl
 from app.repositories.audio.impl.audio_repository_impl import AudioRepositoryImpl
@@ -23,16 +26,20 @@ rabbitmq_client = RabbitMQClientImpl.from_config(
     password=rabbit_credentials['RABBITMQ_PASSWORD']
 ).with_current_service(Service.AUDIO_MANAGER)
 
-# Consumers
-alarm_stopped_consumer = AlarmStoppedConsumer()
-
-rabbitmq_client.consume(alarm_stopped_consumer)
-
 # Create instances only one time
 audio_repository = AudioRepositoryImpl()
 audio_thread = AudioThreadImpl()
 
 audio_service = AudioServiceImpl(audio_repository, audio_thread)
+
+# Consumers
+alarm_stopped_consumer = AlarmStoppedConsumer(audio_service)
+camera_alarm_consumer = CameraAlarmConsumer(audio_service)
+reed_alarm_consumer = ReedAlarmConsumer(audio_service)
+
+rabbitmq_client.consume(alarm_stopped_consumer)
+rabbitmq_client.consume(camera_alarm_consumer)
+rabbitmq_client.consume(camera_alarm_consumer)
 
 # Put them in an interface -> instance dict so they will be used everytime a dependency is required
 bindings[AudioService] = audio_service
