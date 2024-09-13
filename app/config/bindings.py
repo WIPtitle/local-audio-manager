@@ -1,6 +1,7 @@
 from functools import wraps
 from typing import Callable, get_type_hints
 
+from app.consumers.AlarmStoppedConsumer import AlarmStoppedConsumer
 from app.jobs.audio_thread import AudioThread
 from app.jobs.impl.audio_thread_impl import AudioThreadImpl
 from app.repositories.audio.impl.audio_repository_impl import AudioRepositoryImpl
@@ -8,6 +9,9 @@ from app.services.audio.audio_service import AudioService
 from app.services.audio.impl.audio_service_impl import AudioServiceImpl
 
 bindings = { }
+
+# Consumers
+alarm_stopped_consumer = AlarmStoppedConsumer()
 
 # Create instances only one time
 audio_repository = AudioRepositoryImpl()
