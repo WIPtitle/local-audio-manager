@@ -1,3 +1,4 @@
+import sys
 from typing import Type
 
 from rabbitmq_sdk.consumer.base_consumer import BaseConsumer
@@ -13,6 +14,7 @@ class AlarmStoppedConsumer(BaseConsumer):
     def event_class(self) -> Type[BaseEvent]:
         return AlarmStopped
 
-    def do_handle(self, event: BaseEvent):
-        alarm_stopped_event: AlarmStopped = event
-        print(f"STOPPED ALARM {alarm_stopped_event.timestamp}")
+    def do_handle(self, event):
+        event = AlarmStopped.from_dict(event)
+        print(event.timestamp)
+        sys.stdout.flush()

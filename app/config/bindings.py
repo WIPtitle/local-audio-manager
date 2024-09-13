@@ -1,5 +1,9 @@
+import os
 from functools import wraps
 from typing import Callable, get_type_hints
+
+from rabbitmq_sdk.client.impl.rabbitmq_client_impl import RabbitMQClientImpl
+from rabbitmq_sdk.enums.service import Service
 
 from app.consumers.AlarmStoppedConsumer import AlarmStoppedConsumer
 from app.jobs.audio_thread import AudioThread
@@ -7,11 +11,22 @@ from app.jobs.impl.audio_thread_impl import AudioThreadImpl
 from app.repositories.audio.impl.audio_repository_impl import AudioRepositoryImpl
 from app.services.audio.audio_service import AudioService
 from app.services.audio.impl.audio_service_impl import AudioServiceImpl
+from app.utils.read_credentials import read_credentials
 
 bindings = { }
 
+rabbit_credentials = read_credentials(os.getenv('RBBT_CREDENTIALS_FILE'))
+rabbitmq_client = RabbitMQClientImpl.from_config(
+    host=os.getenv("RABBITMQ_HOSTNAME"), # using container name as host instead of ip
+    port=5672,
+    username=rabbit_credentials['RABBITMQ_USER'],
+    password=rabbit_credentials['RABBITMQ_PASSWORD']
+).with_current_service(Service.AUDIO_MANAGER)
+
 # Consumers
 alarm_stopped_consumer = AlarmStoppedConsumer()
+
+rabbitmq_client.consume(alarm_stopped_consumer)
 
 # Create instances only one time
 audio_repository = AudioRepositoryImpl()
