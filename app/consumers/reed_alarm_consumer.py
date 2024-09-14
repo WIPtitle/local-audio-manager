@@ -21,6 +21,7 @@ class ReedAlarmConsumer(BaseConsumer):
 
     def do_handle(self, event):
         event: ReedAlarm = ReedAlarm.from_dict(event)
+        print("STARTING AUDIO")
         try:
             self.audio_service.start_audio()
         except:

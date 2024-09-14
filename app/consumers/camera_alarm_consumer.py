@@ -21,6 +21,7 @@ class CameraAlarmConsumer(BaseConsumer):
 
     def do_handle(self, event):
         event: CameraAlarm = CameraAlarm.from_dict(event)
+        print("STARTING AUDIO")
         try:
             self.audio_service.start_audio()
         except:

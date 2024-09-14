@@ -21,6 +21,7 @@ class AlarmStoppedConsumer(BaseConsumer):
 
     def do_handle(self, event):
         event: AlarmStopped = AlarmStopped.from_dict(event)
+        print("STOPPING AUDIO")
         try:
             self.audio_service.stop_audio()
         except:
