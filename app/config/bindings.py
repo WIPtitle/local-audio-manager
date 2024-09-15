@@ -4,7 +4,6 @@ from typing import Callable, get_type_hints
 
 from rabbitmq_sdk.client.impl.rabbitmq_client_impl import RabbitMQClientImpl
 from rabbitmq_sdk.enums.service import Service
-from rabbitmq_sdk.event.impl.devices_manager.camera_alarm import CameraAlarm
 
 from app.consumers.alarm_stopped_consumer import AlarmStoppedConsumer
 from app.consumers.camera_alarm_consumer import CameraAlarmConsumer

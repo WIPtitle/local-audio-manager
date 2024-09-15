@@ -9,7 +9,7 @@ from app.services.audio.audio_service import AudioService
 class AudioRouter(RouterWrapper):
     @inject
     def __init__(self, audio_service: AudioService):
-        super().__init__(prefix=f"/local-audio")
+        super().__init__(prefix=f"/audio")
         self.audio_service = audio_service
 
 
@@ -24,15 +24,3 @@ class AudioRouter(RouterWrapper):
         def get_audio() -> FileResponse:
             path = self.audio_service.get_audio()
             return FileResponse(path=path, filename=path.name)
-
-
-        @self.router.put("/play")
-        async def play():
-            self.audio_service.start_audio()
-            return Response(status_code=204)
-
-
-        @self.router.put("/stop")
-        async def stop():
-            self.audio_service.stop_audio()
-            return Response(status_code=204)
