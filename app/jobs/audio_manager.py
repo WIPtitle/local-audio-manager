@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 
-class AudioThread:
+class AudioManager:
     @abstractmethod
     def start_audio(self, path: str):
         pass

@@ -8,8 +8,8 @@ from rabbitmq_sdk.enums.service import Service
 from app.consumers.alarm_stopped_consumer import AlarmStoppedConsumer
 from app.consumers.camera_alarm_consumer import CameraAlarmConsumer
 from app.consumers.reed_alarm_consumer import ReedAlarmConsumer
-from app.jobs.audio_thread import AudioThread
-from app.jobs.impl.audio_thread_impl import AudioThreadImpl
+from app.jobs.audio_manager import AudioManager
+from app.jobs.impl.audio_manager_impl import AudioManagerImpl
 from app.repositories.audio.impl.audio_repository_impl import AudioRepositoryImpl
 from app.services.audio.audio_service import AudioService
 from app.services.audio.impl.audio_service_impl import AudioServiceImpl
@@ -27,9 +27,9 @@ rabbitmq_client = RabbitMQClientImpl.from_config(
 
 # Create instances only one time
 audio_repository = AudioRepositoryImpl()
-audio_thread = AudioThreadImpl()
+audio_manager = AudioManagerImpl()
 
-audio_service = AudioServiceImpl(audio_repository, audio_thread)
+audio_service = AudioServiceImpl(audio_repository, audio_manager)
 
 # Consumers
 alarm_stopped_consumer = AlarmStoppedConsumer(audio_service)
@@ -42,7 +42,7 @@ rabbitmq_client.consume(reed_alarm_consumer)
 
 # Put them in an interface -> instance dict so they will be used everytime a dependency is required
 bindings[AudioService] = audio_service
-bindings[AudioThread] = audio_thread
+bindings[AudioManager] = audio_manager
 
 
 def resolve(interface):

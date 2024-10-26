@@ -27,6 +27,7 @@ class AudioRouter(RouterWrapper):
             response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
             return response
 
+
         @self.router.delete("/")
         def delete_audio():
             self.audio_service.delete_audio()
