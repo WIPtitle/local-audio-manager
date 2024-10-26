@@ -11,3 +11,7 @@ class AudioRepository(ABC):
     @abstractmethod
     def create_audio(self, file: UploadFile):
         pass
+
+    @abstractmethod
+    def delete_audio(self):
+        pass

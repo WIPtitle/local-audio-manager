@@ -19,3 +19,7 @@ class AudioService(ABC):
     @abstractmethod
     def stop_audio(self):
         pass
+
+    @abstractmethod
+    def delete_audio(self):
+        pass

@@ -26,3 +26,8 @@ class AudioRepositoryImpl(AudioRepository):
         file_path = self.path / file.filename
         with file_path.open("wb") as buffer:
             buffer.write(file.file.read())
+
+
+    def delete_audio(self) -> None:
+        for f in self.path.glob("*"):
+            f.unlink()

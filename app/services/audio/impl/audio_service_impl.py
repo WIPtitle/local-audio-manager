@@ -26,3 +26,7 @@ class AudioServiceImpl(AudioService):
 
     def stop_audio(self):
         self.audio_thread.stop_audio()
+
+
+    def delete_audio(self):
+        self.audio_repository.delete_audio()

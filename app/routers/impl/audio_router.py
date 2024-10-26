@@ -23,4 +23,11 @@ class AudioRouter(RouterWrapper):
         @self.router.get("/")
         def get_audio() -> FileResponse:
             path = self.audio_service.get_audio()
-            return FileResponse(path=path, filename=path.name)
+            response = FileResponse(path=path, filename=path.name)
+            response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
+            return response
+
+        @self.router.delete("/")
+        def delete_audio():
+            self.audio_service.delete_audio()
+            return Response(status_code=204)
