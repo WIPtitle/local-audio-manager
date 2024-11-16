@@ -21,5 +21,9 @@ class AudioService(ABC):
         pass
 
     @abstractmethod
+    def start_waiting_audio(self):
+        pass
+
+    @abstractmethod
     def delete_audio(self):
         pass

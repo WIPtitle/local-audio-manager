@@ -9,6 +9,10 @@ class AudioRepository(ABC):
         pass
 
     @abstractmethod
+    def get_waiting_audio(self):
+        pass
+
+    @abstractmethod
     def create_audio(self, file: UploadFile):
         pass
 

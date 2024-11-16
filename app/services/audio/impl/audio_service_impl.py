@@ -28,5 +28,10 @@ class AudioServiceImpl(AudioService):
         self.audio_manager.stop_audio()
 
 
+    def start_waiting_audio(self):
+        file = self.audio_repository.get_waiting_audio()
+        self.audio_manager.start_audio(file)
+
+
     def delete_audio(self):
         self.audio_repository.delete_audio()

@@ -13,9 +13,16 @@ class AudioRepositoryImpl(AudioRepository):
 
 
     def get_audio(self):
-        files = list(self.path.glob("*"))
+        files = [f for f in self.path.glob("*") if f.name != "waiting.mp3"]
         if files:
             return files[0]
+        raise NotFoundException("Audio was not found")
+
+
+    def get_waiting_audio(self):
+        file = self.path / "waiting.mp3"
+        if file.exists():
+            return file
         raise NotFoundException("Audio was not found")
 
 
