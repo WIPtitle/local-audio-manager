@@ -14,7 +14,7 @@ class AlarmWaitingConsumer(BaseConsumer):
         self.audio_service = audio_service
 
     def get_event(self) -> Event:
-        return Event.ALARM_STOPPED
+        return Event.ALARM_WAITING
 
     def event_class(self) -> Type[BaseEvent]:
         return AlarmWaiting
@@ -22,6 +22,9 @@ class AlarmWaitingConsumer(BaseConsumer):
     def do_handle(self, event):
         event: AlarmWaiting = AlarmWaiting.from_dict(event)
         try:
-            self.audio_service.start_waiting_audio()
+            if event.started:
+                self.audio_service.start_waiting_audio()
+            else:
+                self.audio_service.stop_audio()
         except:
             pass
