@@ -12,10 +12,10 @@ class AudioManagerImpl(AudioManager):
 
     def start_audio(self, path):
         if not self.audio_path == path:
-            self.stop_audio() # Stop the previous audio if it is different
-        self.running = True
-        self.process = subprocess.Popen(["mpg123", "--loop", "-1", path])
-        self.audio_path = path
+            self.stop_audio() # Stop the previous audio if it is different and play new audio, if not the old one keeps playing
+            self.running = True
+            self.process = subprocess.Popen(["mpg123", "--loop", "-1", path])
+            self.audio_path = path
 
 
     def stop_audio(self):
