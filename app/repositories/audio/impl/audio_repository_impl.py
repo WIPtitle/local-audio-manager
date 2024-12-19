@@ -27,14 +27,18 @@ class AudioRepositoryImpl(AudioRepository):
 
 
     def create_audio(self, file: UploadFile):
-        for f in self.path.glob("*"):
-            f.unlink()
+        self.delete_audio()
 
-        file_path = self.path / file.filename
+        filename = file.filename
+        if file.filename == "waiting.mp3":
+            filename = "alarm.mp3" # do not override the waiting file ever, use a different name
+
+        file_path = self.path / filename
         with file_path.open("wb") as buffer:
             buffer.write(file.file.read())
 
 
     def delete_audio(self) -> None:
         for f in self.path.glob("*"):
-            f.unlink()
+            if f.name != "waiting.mp3":
+                f.unlink()
