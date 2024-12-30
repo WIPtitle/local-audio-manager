@@ -1,4 +1,5 @@
 import os
+import time
 from functools import wraps
 from typing import Callable, get_type_hints
 
@@ -38,10 +39,17 @@ camera_alarm_consumer = CameraAlarmConsumer(audio_service)
 reed_alarm_consumer = ReedAlarmConsumer(audio_service)
 alarm_waiting_consumer = AlarmWaitingConsumer(audio_service)
 
-rabbitmq_client.consume(alarm_stopped_consumer)
-rabbitmq_client.consume(camera_alarm_consumer)
-rabbitmq_client.consume(reed_alarm_consumer)
-rabbitmq_client.consume(alarm_waiting_consumer)
+while not rabbitmq_client.consume(alarm_stopped_consumer):
+    time.sleep(5)
+
+while not rabbitmq_client.consume(camera_alarm_consumer):
+    time.sleep(5)
+
+while not rabbitmq_client.consume(reed_alarm_consumer):
+    time.sleep(5)
+
+while not rabbitmq_client.consume(alarm_waiting_consumer):
+    time.sleep(5)
 
 # Put them in an interface -> instance dict so they will be used everytime a dependency is required
 bindings[AudioService] = audio_service
