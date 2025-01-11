@@ -19,7 +19,7 @@ class AudioManagerImpl(AudioManager):
             command = "aplay -l | grep 'bcm2835' | awk '{gsub(\":\",\"\",$0); print $2 \",\" $7}'"
             output = os.popen(command).read().strip()
 
-            self.process = subprocess.Popen(["mpg123", "-f", "32768", "-a", f"plughw:{output}", "--loop", "-1", path])
+            self.process = subprocess.Popen(["mpg123", "-f", "3276800", "-a", f"plughw:{output}", "--loop", "-1", path])
             self.audio_path = path
 
 
