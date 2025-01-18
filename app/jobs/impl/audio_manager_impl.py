@@ -1,5 +1,5 @@
-import subprocess
 import os
+import subprocess
 
 from app.jobs.audio_manager import AudioManager
 

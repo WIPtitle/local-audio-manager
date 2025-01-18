@@ -8,7 +8,6 @@ from rabbitmq_sdk.enums.service import Service
 
 from app.consumers.alarm_stopped_consumer import AlarmStoppedConsumer
 from app.consumers.alarm_waiting_consumer import AlarmWaitingConsumer
-from app.consumers.camera_alarm_consumer import CameraAlarmConsumer
 from app.consumers.reed_alarm_consumer import ReedAlarmConsumer
 from app.jobs.audio_manager import AudioManager
 from app.jobs.impl.audio_manager_impl import AudioManagerImpl
@@ -35,14 +34,10 @@ audio_service = AudioServiceImpl(audio_repository, audio_manager)
 
 # Consumers
 alarm_stopped_consumer = AlarmStoppedConsumer(audio_service)
-camera_alarm_consumer = CameraAlarmConsumer(audio_service)
 reed_alarm_consumer = ReedAlarmConsumer(audio_service)
 alarm_waiting_consumer = AlarmWaitingConsumer(audio_service)
 
 while not rabbitmq_client.consume(alarm_stopped_consumer):
-    time.sleep(5)
-
-while not rabbitmq_client.consume(camera_alarm_consumer):
     time.sleep(5)
 
 while not rabbitmq_client.consume(reed_alarm_consumer):
