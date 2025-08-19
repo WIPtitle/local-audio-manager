@@ -23,7 +23,13 @@ class AudioRouter(RouterWrapper):
         @self.router.get("/")
         def get_audio() -> FileResponse:
             path = self.audio_service.get_audio()
-            response = FileResponse(path=path, filename=path.name)
+            # Use the actual filename
+            # FastAPI automatically handles HEAD requests for this GET endpoint
+            response = FileResponse(
+                path=path,
+                filename=path.name,
+                media_type="audio/mpeg"
+            )
             response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
             return response
 

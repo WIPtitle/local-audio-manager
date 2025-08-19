@@ -19,39 +19,53 @@ class AudioRepositoryImpl(AudioRepository):
         """Ensure waiting.mp3 exists on the server"""
         waiting_file = self.path / "waiting.mp3"
         if waiting_file.exists():
-            # Check if it exists on the server, upload if not
-            if not self.audio_client.check_audio_exists("waiting"):
-                self.audio_client.upload_audio("waiting", waiting_file)
+            # Check if it exists on the server
+            if not self.audio_client.check_audio_exists("waiting.mp3"):
+                # Upload with full filename
+                self.audio_client.upload_audio("waiting.mp3", waiting_file)
 
     def _ensure_alarm_audio(self):
         """Ensure alarm audio exists on the server"""
-        files = [f for f in self.path.glob("*") if f.name != "waiting.mp3"]
+        files = [f for f in self.path.glob("*.mp3") if f.name != "waiting.mp3"]
         if files:
             alarm_file = files[0]
-            # Check if it exists on the server, upload if not
+            # Use full filename with extension
             audio_name = alarm_file.name
+            # Check if it exists on the server
             if not self.audio_client.check_audio_exists(audio_name):
+                # Upload with full filename
                 self.audio_client.upload_audio(audio_name, alarm_file)
 
     def get_alarm_audio(self):
-        files = [f for f in self.path.glob("*") if f.name != "waiting.mp3"]
+        """Get the alarm audio file path"""
+        files = [f for f in self.path.glob("*.mp3") if f.name != "waiting.mp3"]
         if files:
             return files[0]
         raise NotFoundException("Audio was not found")
 
     def get_waiting_audio(self):
+        """Get the waiting audio file path"""
         file = self.path / "waiting.mp3"
         if file.exists():
             return file
         raise NotFoundException("Audio was not found")
 
     def create_alarm_audio(self, file: UploadFile):
-        # First delete existing alarm audio
+        """Create/update the alarm audio file"""
+        # First delete existing alarm audio (both locally and on server)
         self.delete_alarm_audio()
 
-        filename = file.filename
-        if file.filename == "waiting.mp3":
-            filename = "alarm.mp3"  # do not override the waiting file ever, use a different name
+        # Sanitize filename - remove special characters but keep it recognizable
+        original_name = file.filename
+        if original_name == "waiting.mp3":
+            # Never override the waiting file
+            filename = "alarm.mp3"
+        else:
+            # Ensure it ends with .mp3
+            if not original_name.lower().endswith('.mp3'):
+                filename = original_name + '.mp3'
+            else:
+                filename = original_name
 
         # Save file locally
         file_path = self.path / filename
@@ -59,15 +73,14 @@ class AudioRepositoryImpl(AudioRepository):
             content = file.file.read()
             buffer.write(content)
 
-        # Upload to audio server
-        audio_name = file_path.stem  # Get name without extension
-        self.audio_client.upload_audio(audio_name, file_path)
+        # Upload to audio server with full filename
+        self.audio_client.upload_audio(filename, file_path)
 
     def delete_alarm_audio(self) -> None:
-        for f in self.path.glob("*"):
+        """Delete all alarm audio files (not waiting.mp3)"""
+        for f in self.path.glob("*.mp3"):
             if f.name != "waiting.mp3":
-                # Delete from server
-                audio_name = f.stem
-                self.audio_client.delete_audio(audio_name)
+                # Delete from server using full filename
+                self.audio_client.delete_audio(f.name)
                 # Delete local file
                 f.unlink()

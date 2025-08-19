@@ -10,7 +10,11 @@ class AudioServerClient:
         self.client = httpx.Client(base_url=self.base_url, timeout=30.0)
 
     def check_audio_exists(self, name: str) -> bool:
-        """Check if an audio file exists on the server"""
+        """Check if an audio file exists on the server
+
+        Args:
+            name: Audio name with .mp3 extension
+        """
         try:
             response = self.client.get(f"/api/audio/{name}")
             return response.status_code == 200
@@ -18,7 +22,12 @@ class AudioServerClient:
             return False
 
     def upload_audio(self, name: str, file_path: Path) -> bool:
-        """Upload an audio file to the server"""
+        """Upload an audio file to the server
+
+        Args:
+            name: Audio name with .mp3 extension
+            file_path: Path to the mp3 file to upload
+        """
         try:
             with open(file_path, 'rb') as f:
                 response = self.client.put(
@@ -32,7 +41,11 @@ class AudioServerClient:
             return False
 
     def delete_audio(self, name: str) -> bool:
-        """Delete an audio file from the server"""
+        """Delete an audio file from the server
+
+        Args:
+            name: Audio name with .mp3 extension
+        """
         try:
             response = self.client.delete(f"/api/audio/{name}")
             return response.status_code in [200, 404]  # OK even if not found
@@ -40,7 +53,13 @@ class AudioServerClient:
             return False
 
     def play_audio(self, name: str, volume: int = 100, loop: bool = True) -> bool:
-        """Start playing an audio file"""
+        """Start playing an audio file
+
+        Args:
+            name: Audio name with .mp3 extension
+            volume: Volume level 0-100
+            loop: Whether to loop the audio
+        """
         try:
             response = self.client.post(
                 f"/api/play/{name}",
