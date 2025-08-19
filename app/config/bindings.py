@@ -15,6 +15,7 @@ from app.repositories.audio.impl.audio_repository_impl import AudioRepositoryImp
 from app.services.audio.audio_service import AudioService
 from app.services.audio.impl.audio_service_impl import AudioServiceImpl
 from app.utils.read_credentials import read_credentials
+from app.clients.audio_server_client import AudioServerClient
 
 bindings = { }
 
@@ -26,9 +27,12 @@ rabbitmq_client = RabbitMQClientImpl.from_config(
     password=rabbit_credentials['RABBITMQ_PASSWORD']
 ).with_current_service(Service.AUDIO_MANAGER)
 
+# Create audio server client
+audio_client = AudioServerClient(base_url=os.getenv('MP3_PLAYER_SERVER_URL'))
+
 # Create instances only one time
-audio_repository = AudioRepositoryImpl()
-audio_manager = AudioManagerImpl()
+audio_repository = AudioRepositoryImpl(audio_client)
+audio_manager = AudioManagerImpl(audio_client)
 
 audio_service = AudioServiceImpl(audio_repository, audio_manager)
 

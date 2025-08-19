@@ -5,7 +5,7 @@ from fastapi import UploadFile
 
 class AudioRepository(ABC):
     @abstractmethod
-    def get_audio(self):
+    def get_alarm_audio(self):
         pass
 
     @abstractmethod
@@ -13,9 +13,9 @@ class AudioRepository(ABC):
         pass
 
     @abstractmethod
-    def create_audio(self, file: UploadFile):
+    def create_alarm_audio(self, file: UploadFile):
         pass
 
     @abstractmethod
-    def delete_audio(self):
+    def delete_alarm_audio(self):
         pass

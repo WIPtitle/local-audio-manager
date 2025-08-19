@@ -1,32 +1,33 @@
-import os
-import subprocess
-
+from pathlib import Path
 from app.jobs.audio_manager import AudioManager
+from app.clients.audio_server_client import AudioServerClient
 
 
 class AudioManagerImpl(AudioManager):
-    def __init__(self):
+    def __init__(self, audio_client: AudioServerClient):
+        self.audio_client = audio_client
         self.running = False
-        self.process = None
-        self.audio_path = None
-
+        self.current_audio_name = None
 
     def start_audio(self, path):
-        if self.audio_path is None or not self.audio_path == path:
-            self.stop_audio() # Stop the previous audio if it is different and play new audio, if not the old one keeps playing
-            self.running = True
+        # Convert path to audio name for the server
+        if isinstance(path, (str, Path)):
+            path = Path(path)
+            audio_name = path.stem  # Get filename without extension
 
-            command = "aplay -l | grep 'bcm2835' | awk '{gsub(\":\",\"\",$0); print $2 \",\" $7}'"
-            output = os.popen(command).read().strip()
+            # Only restart if it's a different audio
+            if self.current_audio_name != audio_name:
+                self.stop_audio()
 
-            self.process = subprocess.Popen(["mpg123", "-f", "32768", "-a", f"plughw:{output}", "--loop", "-1", path]) #10x volume
-            self.audio_path = path
-
+                # Play the audio on the remote server
+                if self.audio_client.play_audio(audio_name, volume=100, loop=True):
+                    self.running = True
+                    self.current_audio_name = audio_name
+                else:
+                    print(f"Failed to start audio playback for {audio_name}")
 
     def stop_audio(self):
         if self.running:
+            self.audio_client.stop_playback()
             self.running = False
-            if self.process is not None:
-                self.process.terminate()
-                self.process = None
-        self.audio_path = None
+            self.current_audio_name = None

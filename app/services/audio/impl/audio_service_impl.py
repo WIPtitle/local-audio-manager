@@ -12,15 +12,15 @@ class AudioServiceImpl(AudioService):
 
 
     def get_audio(self):
-        return self.audio_repository.get_audio()
+        return self.audio_repository.get_alarm_audio()
 
 
     def create_audio(self, file: UploadFile):
-        self.audio_repository.create_audio(file)
+        self.audio_repository.create_alarm_audio(file)
 
 
     def start_audio(self):
-        file = self.audio_repository.get_audio()
+        file = self.audio_repository.get_alarm_audio()
         self.audio_manager.start_audio(file)
 
 
@@ -34,4 +34,4 @@ class AudioServiceImpl(AudioService):
 
 
     def delete_audio(self):
-        self.audio_repository.delete_audio()
+        self.audio_repository.delete_alarm_audio()
