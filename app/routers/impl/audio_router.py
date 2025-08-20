@@ -20,11 +20,9 @@ class AudioRouter(RouterWrapper):
             return Response(status_code=204)
 
 
-        @self.router.get("/")
+        @self.router.api_route("/", methods=["GET", "HEAD"])
         def get_audio() -> FileResponse:
             path = self.audio_service.get_audio()
-            # Use the actual filename
-            # FastAPI automatically handles HEAD requests for this GET endpoint
             response = FileResponse(
                 path=path,
                 filename=path.name,
