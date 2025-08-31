@@ -1,7 +1,7 @@
 import os
 import time
 from functools import wraps
-from typing import Callable, get_type_hints
+from typing import Callable, get_type_hints, List
 
 from rabbitmq_sdk.client.impl.rabbitmq_client_impl import RabbitMQClientImpl
 from rabbitmq_sdk.enums.service import Service
@@ -27,12 +27,19 @@ rabbitmq_client = RabbitMQClientImpl.from_config(
     password=rabbit_credentials['RABBITMQ_PASSWORD']
 ).with_current_service(Service.AUDIO_MANAGER)
 
-# Create audio server client
-audio_client = AudioServerClient(base_url=os.getenv('MP3_PLAYER_SERVER_URL'))
+# Create multiple MP3 Player clients - one for each server
+mp3_urls = os.getenv('MP3_PLAYER_SERVER_URLS', 'http://localhost:8888')
+mp3_server_urls = [url.strip() for url in mp3_urls.split(',')]
+audio_clients: List[AudioServerClient] = []
+
+for mp3_url in mp3_server_urls:
+    client = AudioServerClient(base_url=mp3_url)
+    audio_clients.append(client)
+    print(f"Created MP3 player client for {mp3_url}")
 
 # Create instances only one time
-audio_repository = AudioRepositoryImpl(audio_client)
-audio_manager = AudioManagerImpl(audio_client)
+audio_repository = AudioRepositoryImpl(audio_clients)
+audio_manager = AudioManagerImpl(audio_clients)
 
 audio_service = AudioServiceImpl(audio_repository, audio_manager)
 
@@ -53,6 +60,8 @@ while not rabbitmq_client.consume(alarm_waiting_consumer):
 # Put them in an interface -> instance dict so they will be used everytime a dependency is required
 bindings[AudioService] = audio_service
 bindings[AudioManager] = audio_manager
+# Store the list of audio clients
+bindings['audio_clients'] = audio_clients
 
 
 def resolve(interface):
