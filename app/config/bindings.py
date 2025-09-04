@@ -6,6 +6,7 @@ from typing import Callable, get_type_hints, List
 from rabbitmq_sdk.client.impl.rabbitmq_client_impl import RabbitMQClientImpl
 from rabbitmq_sdk.enums.service import Service
 
+from app.clients.auth_client import AuthClient
 from app.consumers.alarm_stopped_consumer import AlarmStoppedConsumer
 from app.consumers.alarm_waiting_consumer import AlarmWaitingConsumer
 from app.consumers.sensor_alarm_consumer import SensorAlarmConsumer
@@ -62,6 +63,8 @@ bindings[AudioService] = audio_service
 bindings[AudioManager] = audio_manager
 # Store the list of audio clients
 bindings['audio_clients'] = audio_clients
+
+bindings[AuthClient] = AuthClient()
 
 
 def resolve(interface):
