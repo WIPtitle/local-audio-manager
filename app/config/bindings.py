@@ -16,35 +16,43 @@ from app.repositories.audio.impl.audio_repository_impl import AudioRepositoryImp
 from app.services.audio.audio_service import AudioService
 from app.services.audio.impl.audio_service_impl import AudioServiceImpl
 from app.utils.read_credentials import read_credentials
-from app.clients.audio_server_client import AudioServerClient
+from app.clients.audio_server_client import AudioServerClient, AudioType
 
-bindings = { }
+bindings = {}
 
 rabbit_credentials = read_credentials(os.getenv('RBBT_CREDENTIALS_FILE'))
 rabbitmq_client = RabbitMQClientImpl.from_config(
-    host=os.getenv("RABBITMQ_HOSTNAME"), # using container name as host instead of ip
+    host=os.getenv("RABBITMQ_HOSTNAME"),
     port=5672,
     username=rabbit_credentials['RABBITMQ_USER'],
     password=rabbit_credentials['RABBITMQ_PASSWORD']
 ).with_current_service(Service.AUDIO_MANAGER)
 
-# Create multiple MP3 Player clients - one for each server
 mp3_urls = os.getenv('MP3_PLAYER_SERVER_URLS', 'http://localhost:8888')
 mp3_server_urls = [url.strip() for url in mp3_urls.split(',')]
 audio_clients: List[AudioServerClient] = []
 
 for mp3_url in mp3_server_urls:
-    client = AudioServerClient(base_url=mp3_url)
-    audio_clients.append(client)
-    print(f"Created MP3 player client for {mp3_url}")
+    audio_type = AudioType.BOTH
+    url = mp3_url
 
-# Create instances only one time
+    if '@' in mp3_url:
+        parts = mp3_url.split('@', 1)
+        if len(parts) == 2:
+            type_str, url = parts
+            type_str = type_str.upper()
+            if type_str in [t.value for t in AudioType]:
+                audio_type = AudioType(type_str)
+
+    client = AudioServerClient(base_url=url, audio_type=audio_type)
+    audio_clients.append(client)
+    print(f"Created MP3 player client for {url} with type {audio_type.value}")
+
 audio_repository = AudioRepositoryImpl(audio_clients)
 audio_manager = AudioManagerImpl(audio_clients)
 
 audio_service = AudioServiceImpl(audio_repository, audio_manager)
 
-# Consumers
 alarm_stopped_consumer = AlarmStoppedConsumer(audio_service)
 sensor_alarm_consumer = SensorAlarmConsumer(audio_service)
 alarm_waiting_consumer = AlarmWaitingConsumer(audio_service)
@@ -58,10 +66,8 @@ while not rabbitmq_client.consume(sensor_alarm_consumer):
 while not rabbitmq_client.consume(alarm_waiting_consumer):
     time.sleep(5)
 
-# Put them in an interface -> instance dict so they will be used everytime a dependency is required
 bindings[AudioService] = audio_service
 bindings[AudioManager] = audio_manager
-# Store the list of audio clients
 bindings['audio_clients'] = audio_clients
 
 bindings[AuthClient] = AuthClient()

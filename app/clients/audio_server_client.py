@@ -1,12 +1,19 @@
-import os
+from enum import Enum
 from pathlib import Path
 
 import httpx
 
 
+class AudioType(Enum):
+    ALARM = "ALARM"
+    WAITING = "WAITING"
+    BOTH = "BOTH"
+
+
 class AudioServerClient:
-    def __init__(self, base_url: str = None):
-        self.base_url = base_url or os.getenv('MP3_PLAYER_SERVER_URL', 'http://localhost:8888')
+    def __init__(self, base_url: str, audio_type: AudioType = AudioType.BOTH):
+        self.base_url = base_url
+        self.audio_type = audio_type
         self.client = httpx.Client(base_url=self.base_url, timeout=30.0)
 
     def check_audio_exists(self, name: str) -> bool:
