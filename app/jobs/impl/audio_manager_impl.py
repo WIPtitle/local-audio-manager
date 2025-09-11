@@ -43,7 +43,7 @@ class AudioManagerImpl(AudioManager):
                     return
 
                 def play_on_server(client: AudioServerClient) -> tuple[str, bool]:
-                    success = client.play_audio(audio_name, volume=100, loop=True)
+                    success = client.play_audio(audio_name, volume=100, loop=True, duration=120)
                     return client.base_url, success
 
                 results = {}

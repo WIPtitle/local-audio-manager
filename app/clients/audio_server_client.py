@@ -59,7 +59,7 @@ class AudioServerClient:
         except:
             return False
 
-    def play_audio(self, name: str, volume: int = 100, loop: bool = True) -> bool:
+    def play_audio(self, name: str, volume: int = 100, loop: bool = True, duration: int = None) -> bool:
         """Start playing an audio file
 
         Args:
@@ -70,7 +70,7 @@ class AudioServerClient:
         try:
             response = self.client.post(
                 f"/api/play/{name}",
-                params={"volume": volume, "loop": loop}
+                params={"volume": volume, "loop": loop, "duration": duration}
             )
             return response.status_code == 200
         except Exception as e:
