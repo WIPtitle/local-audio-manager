@@ -1,32 +1,16 @@
 import os
-import time
 from functools import wraps
 from typing import Callable, get_type_hints, List
 
-from rabbitmq_sdk.client.impl.rabbitmq_client_impl import RabbitMQClientImpl
-from rabbitmq_sdk.enums.service import Service
-
 from app.clients.auth_client import AuthClient
-from app.consumers.alarm_stopped_consumer import AlarmStoppedConsumer
-from app.consumers.alarm_waiting_consumer import AlarmWaitingConsumer
-from app.consumers.sensor_alarm_consumer import SensorAlarmConsumer
 from app.jobs.audio_manager import AudioManager
 from app.jobs.impl.audio_manager_impl import AudioManagerImpl
 from app.repositories.audio.impl.audio_repository_impl import AudioRepositoryImpl
 from app.services.audio.audio_service import AudioService
 from app.services.audio.impl.audio_service_impl import AudioServiceImpl
-from app.utils.read_credentials import read_credentials
 from app.clients.audio_server_client import AudioServerClient, AudioType
 
 bindings = {}
-
-rabbit_credentials = read_credentials(os.getenv('RBBT_CREDENTIALS_FILE'))
-rabbitmq_client = RabbitMQClientImpl.from_config(
-    host=os.getenv("RABBITMQ_HOSTNAME"),
-    port=5672,
-    username=rabbit_credentials['RABBITMQ_USER'],
-    password=rabbit_credentials['RABBITMQ_PASSWORD']
-).with_current_service(Service.AUDIO_MANAGER)
 
 mp3_urls = os.getenv('MP3_PLAYER_SERVER_URLS', 'http://localhost:8888')
 mp3_server_urls = [url.strip() for url in mp3_urls.split(',')]
@@ -52,19 +36,6 @@ audio_repository = AudioRepositoryImpl(audio_clients)
 audio_manager = AudioManagerImpl(audio_clients)
 
 audio_service = AudioServiceImpl(audio_repository, audio_manager)
-
-alarm_stopped_consumer = AlarmStoppedConsumer(audio_service)
-sensor_alarm_consumer = SensorAlarmConsumer(audio_service)
-alarm_waiting_consumer = AlarmWaitingConsumer(audio_service)
-
-while not rabbitmq_client.consume(alarm_stopped_consumer):
-    time.sleep(5)
-
-while not rabbitmq_client.consume(sensor_alarm_consumer):
-    time.sleep(5)
-
-while not rabbitmq_client.consume(alarm_waiting_consumer):
-    time.sleep(5)
 
 bindings[AudioService] = audio_service
 bindings[AudioManager] = audio_manager

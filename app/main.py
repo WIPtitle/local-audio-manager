@@ -4,11 +4,13 @@ from fastapi import FastAPI
 
 from app.config.handlers import get_exception_handlers
 from app.routers.impl.audio_router import AudioRouter
+from app.routers.impl.internal_events_router import InternalEventsRouter
 from app.routers.router_wrapper import RouterWrapper
 
 exception_handlers = get_exception_handlers()
 routers: List[RouterWrapper] = [
-    AudioRouter()
+    AudioRouter(),
+    InternalEventsRouter()
 ]
 
 app = FastAPI()
