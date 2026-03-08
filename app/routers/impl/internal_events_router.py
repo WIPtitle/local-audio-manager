@@ -14,6 +14,10 @@ class SensorAlarmRequest(BaseModel):
     sensor_name: str
 
 
+class MotionWarningRequest(BaseModel):
+    camera_name: str
+
+
 class InternalEventsRouter(RouterWrapper):
     @inject
     def __init__(self, audio_service: AudioService):
@@ -37,4 +41,9 @@ class InternalEventsRouter(RouterWrapper):
         @self.router.post("/stopped")
         def on_alarm_stopped():
             self.audio_service.stop_audio()
+            return Response(status_code=204)
+
+        @self.router.post("/motion-warning")
+        def on_motion_warning(request: MotionWarningRequest):
+            self.audio_service.start_warning_audio()
             return Response(status_code=204)

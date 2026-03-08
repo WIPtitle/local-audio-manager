@@ -13,9 +13,25 @@ class AudioRepository(ABC):
         pass
 
     @abstractmethod
+    def get_warning_audio(self):
+        pass
+
+    @abstractmethod
     def create_alarm_audio(self, file: UploadFile):
         pass
 
     @abstractmethod
     def delete_alarm_audio(self):
+        pass
+
+    @abstractmethod
+    def create_warning_audio(self, file: UploadFile):
+        pass
+
+    @abstractmethod
+    def delete_warning_audio(self):
+        pass
+
+    @abstractmethod
+    def ensure_all_audio_on_servers(self):
         pass

@@ -16,6 +16,8 @@ class AudioRouter(RouterWrapper):
         self.auth_client = auth_client
 
     def _define_routes(self):
+        # --- Alarm audio ---
+
         @self.router.post("/")
         async def save_audio(request: Request, audio: UploadFile = File(...)):
             token = request.headers.get("Authorization")
@@ -43,4 +45,35 @@ class AudioRouter(RouterWrapper):
             if user is None or "CHANGE_ALARM_SOUND" not in user.permissions:
                 raise AuthorizationException("Not authorized")
             self.audio_service.delete_audio()
+            return Response(status_code=204)
+
+        # --- Warning audio ---
+
+        @self.router.post("/warning")
+        async def save_warning_audio(request: Request, audio: UploadFile = File(...)):
+            token = request.headers.get("Authorization")
+            user = await self.auth_client.get_authenticated_user(token)
+            if user is None or "CHANGE_ALARM_SOUND" not in user.permissions:
+                raise AuthorizationException("Not authorized")
+            self.audio_service.create_warning_audio(audio)
+            return Response(status_code=204)
+
+        @self.router.api_route("/warning", methods=["GET", "HEAD"])
+        def get_warning_audio() -> FileResponse:
+            path = self.audio_service.get_warning_audio()
+            response = FileResponse(
+                path=path,
+                filename=path.name,
+                media_type="audio/mpeg"
+            )
+            response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
+            return response
+
+        @self.router.delete("/warning")
+        async def delete_warning_audio(request: Request):
+            token = request.headers.get("Authorization")
+            user = await self.auth_client.get_authenticated_user(token)
+            if user is None or "CHANGE_ALARM_SOUND" not in user.permissions:
+                raise AuthorizationException("Not authorized")
+            self.audio_service.delete_warning_audio()
             return Response(status_code=204)

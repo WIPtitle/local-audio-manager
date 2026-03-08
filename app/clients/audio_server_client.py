@@ -1,5 +1,6 @@
 from enum import Enum
 from pathlib import Path
+from typing import Dict, Optional, Set
 
 import httpx
 
@@ -7,21 +8,20 @@ import httpx
 class AudioType(Enum):
     ALARM = "ALARM"
     WAITING = "WAITING"
-    BOTH = "BOTH"
+    WARNING = "WARNING"
 
 
 class AudioServerClient:
-    def __init__(self, base_url: str, audio_type: AudioType = AudioType.BOTH):
+    def __init__(self, base_url: str, audio_types: Set[AudioType], volumes: Optional[Dict[AudioType, int]] = None):
         self.base_url = base_url
-        self.audio_type = audio_type
+        self.audio_types = audio_types
+        self.volumes = volumes or {t: 100 for t in AudioType}
         self.client = httpx.Client(base_url=self.base_url, timeout=30.0)
 
-    def check_audio_exists(self, name: str) -> bool:
-        """Check if an audio file exists on the server
+    def get_volume(self, audio_type: AudioType) -> int:
+        return self.volumes.get(audio_type, 100)
 
-        Args:
-            name: Audio name with .mp3 extension
-        """
+    def check_audio_exists(self, name: str) -> bool:
         try:
             response = self.client.get(f"/api/audio/{name}")
             return response.status_code == 200
@@ -29,12 +29,6 @@ class AudioServerClient:
             return False
 
     def upload_audio(self, name: str, file_path: Path) -> bool:
-        """Upload an audio file to the server
-
-        Args:
-            name: Audio name with .mp3 extension
-            file_path: Path to the mp3 file to upload
-        """
         try:
             with open(file_path, 'rb') as f:
                 response = self.client.put(
@@ -48,25 +42,13 @@ class AudioServerClient:
             return False
 
     def delete_audio(self, name: str) -> bool:
-        """Delete an audio file from the server
-
-        Args:
-            name: Audio name with .mp3 extension
-        """
         try:
             response = self.client.delete(f"/api/audio/{name}")
-            return response.status_code in [200, 404]  # OK even if not found
+            return response.status_code in [200, 404]
         except:
             return False
 
     def play_audio(self, name: str, volume: int = 100, loop: bool = True, duration: int = None) -> bool:
-        """Start playing an audio file
-
-        Args:
-            name: Audio name with .mp3 extension
-            volume: Volume level 0-100
-            loop: Whether to loop the audio
-        """
         try:
             response = self.client.post(
                 f"/api/play/{name}",
@@ -78,7 +60,6 @@ class AudioServerClient:
             return False
 
     def stop_playback(self) -> bool:
-        """Stop current audio playback"""
         try:
             response = self.client.post("/api/stop")
             return response.status_code == 200
@@ -87,7 +68,6 @@ class AudioServerClient:
             return False
 
     def list_audio_files(self) -> list:
-        """List all audio files on the server"""
         try:
             response = self.client.get("/api/audio")
             if response.status_code == 200:
@@ -97,5 +77,4 @@ class AudioServerClient:
         return []
 
     def close(self):
-        """Close the HTTP client"""
         self.client.close()

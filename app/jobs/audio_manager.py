@@ -7,5 +7,9 @@ class AudioManager:
         pass
 
     @abstractmethod
+    def start_warning_audio(self, path: str):
+        pass
+
+    @abstractmethod
     def stop_audio(self):
         pass
