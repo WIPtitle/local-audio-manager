@@ -13,7 +13,7 @@ class AudioService(ABC):
         pass
 
     @abstractmethod
-    def start_audio(self):
+    def start_audio(self, duration: int = None):
         pass
 
     @abstractmethod
@@ -21,7 +21,7 @@ class AudioService(ABC):
         pass
 
     @abstractmethod
-    def start_waiting_audio(self):
+    def start_waiting_audio(self, duration: int = None):
         pass
 
     @abstractmethod

@@ -17,17 +17,17 @@ class AudioServiceImpl(AudioService):
     def create_audio(self, file: UploadFile):
         self.audio_repository.create_alarm_audio(file)
 
-    def start_audio(self):
+    def start_audio(self, duration: int = None):
         file = self.audio_repository.get_alarm_audio()
-        self.audio_manager.start_audio(file)
+        self.audio_manager.start_audio(file, duration=duration)
 
     def stop_audio(self):
         self.audio_manager.stop_audio()
 
-    def start_waiting_audio(self):
+    def start_waiting_audio(self, duration: int = None):
         try:
             file = self.audio_repository.get_waiting_audio()
-            self.audio_manager.start_audio(file)
+            self.audio_manager.start_audio(file, duration=duration)
         except NotFoundException:
             pass
 

@@ -39,7 +39,10 @@ class AudioManagerImpl(AudioManager):
         if previous:
             print(f"Stopped playing {previous}")
 
-    def _play(self, audio_name: str, audio_type: AudioType, loop: bool, duration: int):
+    def _play(self, audio_name: str, audio_type: AudioType, loop: bool, duration: int | None):
+        if loop and not duration:
+            raise ValueError(f"duration is required when loop=True (audio: {audio_name})")
+
         self._stop_all_clients()
 
         relevant_clients = self._get_clients_for_type(audio_type)
@@ -73,13 +76,16 @@ class AudioManagerImpl(AudioManager):
         else:
             print(f"Failed to start audio playback for {audio_name} on all servers")
 
-    def start_audio(self, path):
+    MAX_AUDIO_DURATION = 300
+
+    def start_audio(self, path, duration: int = None):
         if isinstance(path, (str, Path)):
             path = Path(path)
             audio_name = path.name
             is_waiting = audio_name == "waiting.mp3"
             audio_type = AudioType.WAITING if is_waiting else AudioType.ALARM
-            self._play(audio_name, audio_type, loop=True, duration=120)
+            capped_duration = min(duration, self.MAX_AUDIO_DURATION) if duration is not None else None
+            self._play(audio_name, audio_type, loop=True, duration=capped_duration)
 
     def start_warning_audio(self, path):
         if self.current_audio_type == AudioType.ALARM:
