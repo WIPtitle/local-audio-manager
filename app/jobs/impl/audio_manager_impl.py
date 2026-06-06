@@ -1,3 +1,4 @@
+import threading
 from pathlib import Path
 from typing import List, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -43,13 +44,25 @@ class AudioManagerImpl(AudioManager):
         if loop and not duration:
             raise ValueError(f"duration is required when loop=True (audio: {audio_name})")
 
-        self._stop_all_clients()
-
         relevant_clients = self._get_clients_for_type(audio_type)
 
         if not relevant_clients:
             print(f"No servers configured for {audio_type.value} audio")
+            # Nothing to play here, but make sure nothing keeps playing elsewhere.
+            self._stop_all_clients()
             return
+
+        # The MP3 player stops its own current playback before starting a new one
+        # (player.play() -> _stop_internal()), so pre-stopping the servers that are
+        # about to receive this audio is redundant. Worse, the old code did a
+        # blocking stop to ALL servers first and waited for every one of them — a
+        # slow stop to an unrelated/distant server (e.g. the cottage Pi over a weak
+        # link) delayed the actual play and could truncate the waiting sound.
+        # Now: play on the relevant servers and wait only for that; stop the other
+        # servers concurrently as fire-and-forget so they never gate the sound.
+        irrelevant_clients = [c for c in self.audio_clients if c not in relevant_clients]
+        for client in irrelevant_clients:
+            threading.Thread(target=client.stop_playback, daemon=True).start()
 
         def play_on_server(client: AudioServerClient) -> tuple[str, bool]:
             volume = client.get_volume(audio_type)
@@ -57,11 +70,15 @@ class AudioManagerImpl(AudioManager):
             return client.base_url, success
 
         results = {}
-        with ThreadPoolExecutor(max_workers=len(relevant_clients)) as executor:
-            futures = [executor.submit(play_on_server, client) for client in relevant_clients]
-            for future in as_completed(futures):
-                url, success = future.result()
-                results[url] = success
+        if len(relevant_clients) == 1:
+            url, success = play_on_server(relevant_clients[0])
+            results[url] = success
+        else:
+            with ThreadPoolExecutor(max_workers=len(relevant_clients)) as executor:
+                futures = [executor.submit(play_on_server, client) for client in relevant_clients]
+                for future in as_completed(futures):
+                    url, success = future.result()
+                    results[url] = success
 
         success_count = sum(1 for success in results.values() if success)
 
